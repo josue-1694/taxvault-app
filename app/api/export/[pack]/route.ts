@@ -2,26 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { calculateTax, formatCurrency, TAX_CONSTANTS, getQuarterlyDueDates } from "@/lib/tax-engine";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy — only instantiated at request time, not during build
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 const YEAR = 2026;
 const DISCLAIMER = `\n⚠  ILLUSTRATIVE ONLY — Not tax advice. Verify with your CPA before filing.\n   No US-DR income tax treaty exists. SE tax applies regardless of FEIE.\n`;
 
 async function getSummary(userId: string) {
-  const { data } = await supabase.from("tax_summaries").select("*").eq("user_id", userId).eq("fiscal_year", YEAR).single();
+  const { data } = await getSupabase().from("tax_summaries").select("*").eq("user_id", userId).eq("fiscal_year", YEAR).single();
   return data;
 }
 async function getTransactions(userId: string, type?: string) {
-  let q = supabase.from("transactions").select("*").eq("user_id", userId).eq("fiscal_year", YEAR).order("date");
+  let q = getSupabase().from("transactions").select("*").eq("user_id", userId).eq("fiscal_year", YEAR).order("date");
   if (type) q = q.eq("type", type);
   const { data } = await q;
   return data || [];
 }
 async function getFbarAccounts(userId: string) {
-  const { data } = await supabase.from("fbar_accounts").select("*").eq("user_id", userId).eq("fiscal_year", YEAR);
+  const { data } = await getSupabase().from("fbar_accounts").select("*").eq("user_id", userId).eq("fiscal_year", YEAR);
   return data || [];
 }
 
@@ -35,7 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ pack
   const { pack } = await params;
 
   // Get first user (single-user app for Dr. Garcia)
-  const { data: users } = await supabase.auth.admin.listUsers();
+  const { data: users } = await getSupabase().auth.admin.listUsers();
   if (!users?.users?.length) {
     return new NextResponse("No users", { status: 401 });
   }
