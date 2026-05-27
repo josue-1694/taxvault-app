@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0A0A0F;
+  --bg-card: #111118;
+  --bg-card-hover: #1a1a24;
+  --cyan: #00F5FF;
+  --violet: #7C3AED;
+  --green: #00FF88;
+  --amber: #FFB800;
+  --red: #FF4D6D;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #F0F0F5;
+  --text-muted: #6B6B80;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
 }
+
+/* Glow utilities */
+.card-glow-cyan   { box-shadow: 0 0 20px rgba(0,245,255,0.15), inset 0 0 0 1px rgba(0,245,255,0.12); }
+.card-glow-green  { box-shadow: 0 0 20px rgba(0,255,136,0.15), inset 0 0 0 1px rgba(0,255,136,0.12); }
+.card-glow-violet { box-shadow: 0 0 20px rgba(124,58,237,0.15), inset 0 0 0 1px rgba(124,58,237,0.12); }
+.card-glow-amber  { box-shadow: 0 0 20px rgba(255,184,0,0.15),  inset 0 0 0 1px rgba(255,184,0,0.12); }
+.card-glow-red    { box-shadow: 0 0 20px rgba(255,77,109,0.15), inset 0 0 0 1px rgba(255,77,109,0.12); }
+
+/* Card base */
+.card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  transition: background 0.15s ease;
+}
+.card:active { background: var(--bg-card-hover); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+/* Bottom nav clearance */
+.page-content { padding-bottom: 88px; }
+
+/* Pulse animation */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+/* Tabular numbers */
+.num { font-variant-numeric: tabular-nums; }
+
+/* iPhone safe area */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
