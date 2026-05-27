@@ -20,10 +20,6 @@ async function getTransactions(userId: string, type?: string) {
   const { data } = await q;
   return data || [];
 }
-async function getAssets(userId: string) {
-  const { data } = await supabase.from("assets").select("*").eq("user_id", userId).eq("fiscal_year", YEAR);
-  return data || [];
-}
 async function getFbarAccounts(userId: string) {
   const { data } = await supabase.from("fbar_accounts").select("*").eq("user_id", userId).eq("fiscal_year", YEAR);
   return data || [];

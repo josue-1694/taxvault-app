@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
-import { calculateTax, formatCurrency, getQuarterlyDueDates, daysUntil, TAX_CONSTANTS } from "@/lib/tax-engine";
+import { calculateTax, formatCurrency, getQuarterlyDueDates, daysUntil } from "@/lib/tax-engine";
 import MetricCard from "@/components/MetricCard";
 import TaxWaterfall from "@/components/TaxWaterfall";
 import QuickAdd from "@/components/QuickAdd";
