@@ -1,27 +1,39 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import toast from "react-hot-toast";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("josue-1694@hotmail.com");
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
+const INPUT = "w-full rounded-xl px-4 py-3 text-sm outline-none";
+const INPUT_STYLE = { background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text)" };
 
-  async function sendMagicLink(e: React.FormEvent) {
+export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
       const sb = createClient();
-      const { error } = await sb.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
-      });
-      if (error) throw error;
-      setSent(true);
+      if (mode === "signin") {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        router.push("/dashboard");
+      } else {
+        const { error } = await sb.auth.signUp({ email, password });
+        if (error) throw error;
+        toast.success("Account created — signing you in…");
+        const { error: signInErr } = await sb.auth.signInWithPassword({ email, password });
+        if (signInErr) throw signInErr;
+        router.push("/dashboard");
+      }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error sending link");
+      toast.error(err instanceof Error ? err.message : "Auth error");
     } finally {
       setLoading(false);
     }
@@ -41,45 +53,65 @@ export default function LoginPage() {
           <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Personal Tax Command Center</p>
         </div>
 
-        {!sent ? (
-          <form onSubmit={sendMagicLink} className="space-y-4">
-            <div>
-              <label className="text-xs font-medium uppercase tracking-wider mb-1.5 block" style={{ color: "var(--text-muted)" }}>
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text)" }}
-                placeholder="you@example.com"
-              />
-            </div>
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 rounded-xl text-sm font-semibold"
-              style={{ background: "var(--cyan)", color: "#0A0A0F", opacity: loading ? 0.7 : 1 }}
+        {/* Tab toggle */}
+        <div className="flex rounded-xl p-1 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          {(["signin", "signup"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
+              style={{
+                background: mode === m ? "var(--cyan)" : "transparent",
+                color: mode === m ? "#0A0A0F" : "var(--text-muted)",
+              }}
             >
-              {loading ? "Sending…" : "Send Magic Link →"}
-            </motion.button>
-          </form>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="card text-center py-8"
+              {m === "signin" ? "Sign In" : "Create Account"}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="text-xs font-medium uppercase tracking-wider mb-1.5 block" style={{ color: "var(--text-muted)" }}>
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              className={INPUT}
+              style={INPUT_STYLE}
+              placeholder="you@example.com"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium uppercase tracking-wider mb-1.5 block" style={{ color: "var(--text-muted)" }}>
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              minLength={6}
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              className={INPUT}
+              style={INPUT_STYLE}
+              placeholder="••••••••"
+            />
+          </div>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            type="submit"
+            disabled={loading}
+            className="w-full py-3.5 rounded-xl text-sm font-semibold mt-1"
+            style={{ background: "var(--cyan)", color: "#0A0A0F", opacity: loading ? 0.7 : 1 }}
           >
-            <p className="text-4xl mb-3">📬</p>
-            <p className="font-semibold mb-1">Check your email</p>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              Magic link sent to <span style={{ color: "var(--cyan)" }}>{email}</span>
-            </p>
-          </motion.div>
-        )}
+            {loading ? "…" : mode === "signin" ? "Sign In →" : "Create Account →"}
+          </motion.button>
+        </form>
 
         <p className="text-xs text-center mt-6" style={{ color: "var(--text-muted)" }}>
           Private. Encrypted. Your data only.
