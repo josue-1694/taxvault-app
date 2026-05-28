@@ -5,8 +5,8 @@ import { calculateTax, formatCurrency, TAX_CONSTANTS, getQuarterlyDueDates } fro
 // Lazy — only instantiated at request time, not during build
 function getSupabase() {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
+    process.env.SUPABASE_SERVICE_ROLE_KEY!.trim(),
     { db: { schema: "taxvault" } }
   );
 }
