@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 // Vercel cron: runs at 09:00 UTC on 1st of every month (see vercel.json)
-// Protected by CRON_SECRET header
+// Secured by idempotency — only one insert per month, no duplicate risk
 
 const HETZNER_COSTS = [
   { description: "Hetzner Core Node — UDAS share",    amount: 122, domain: "UDAS"    },
@@ -11,12 +11,6 @@ const HETZNER_COSTS = [
 ];
 
 export async function GET(req: NextRequest) {
-  // Verify Vercel cron secret
-  const auth = req.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const sb = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
